@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Multi-Utility Pro</title>
+    <style>
+        :root {
+            --md-primary: #1877F2;
+            --md-on-primary: #ffffff;
+            --md-surface: #ffffff;
+            --md-on-surface: #000000;
+            --md-surface-variant: #f5f5f5;
+            --md-on-surface-variant: #444444;
+            --md-outline: #1877F2;           
+            --md-error: #B3261E;
+            --md-elevation-1: 0 1px 2px rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
+            --md-elevation-2: 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
+            --md-elevation-3: 0 4px 8px 3px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--md-surface);
+            color: var(--md-on-surface);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--md-surface);
+            position: relative;
+            box-shadow: var(--md-elevation-3);
+        }
+
+        .top-bar {
+            background-color: var(--md-primary);
+            color: var(--md-on-primary);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 64px;
+            z-index: 10;
+            box-shadow: var(--md-elevation-2);
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            margin-right: 8px;
+        }
+
+        .top-bar h1 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .color-palette-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background-color: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            margin-left: 8px;
+        }
+
+        .color-palette-btn:active { background-color: rgba(255,255,255,0.3); }
+
+        .color-panel {
+            background-color: var(--md-surface);
+            border-bottom: 2px solid var(--md-outline);
+            padding: 12px 8px;
+            display: none;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            box-shadow: var(--md-elevation-1);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            z-index: 9;
+        }
+
+        .color-panel::-webkit-scrollbar { display: none; }
+        .color-panel.show { display: flex; gap: 12px; }
+
+        .color-option {
+            min-width: 36px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            box-shadow: var(--md-elevation-1);
+            flex-shrink: 0;
+        }
+
+        .color-option.active-color {
+            border: 3px solid var(--md-on-surface);
+            box-shadow: 0 0 0 3px var(--md-primary);
+        }
+
+        /* Sidebar Menu Styles */
+        .sidebar-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 299;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+
+        .sidebar {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            width: 260px;
+            background: var(--md-surface);
+            z-index: 300;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--md-elevation-3);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.active { transform: translateX(0); }
+
+        .sidebar-header {
+            padding: 24px 16px;
+            background: var(--md-primary);
+            color: var(--md-on-primary);
+        }
+        .sidebar-header h2 { font-size: 24px; font-weight: 700; }
+        .sidebar-header p { font-size: 14px; opacity: 0.9; margin-top: 4px; font-weight: 500; }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 0;
+        }
+
+        .sidebar-item {
+            padding: 16px 24px;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--md-on-surface);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .sidebar-item:active { background: var(--md-surface-variant); }
+        .sidebar-item svg { width: 24px; height: 24px; fill: var(--md-on-surface-variant); }
+
+        /* Full Edge-to-Edge Modals */
+        .full-modal {
+            position: absolute;
+            inset: 0;
+            background: var(--md-surface);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .full-modal.active { display: flex; transform: translateY(0); }
+
+        .modal-header {
+            background: var(--md-surface);
+            color: var(--md-on-surface);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--md-outline);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 201;
+        }
+        .modal-header h2 { font-size: 18px; font-weight: 700; flex: 1; text-align: center; }
+        .back-btn { background: none; border: none; padding: 8px; cursor: pointer; color: var(--md-on-surface); display: flex; }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 20px;
+            background: var(--md-surface-variant);
+        }
+        
+        .modal-card {
+            background: var(--md-surface);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--md-elevation-1);
+            margin-bottom: 20px;
+        }
+        .modal-card h3 { color: var(--md-primary); margin-bottom: 12px; font-size: 20px; }
+        .modal-card p { line-height: 1.6; color: var(--md-on-surface-variant); margin-bottom: 16px; font-size: 18px; font-weight: 500;}
+        .modal-card ul { padding-left: 20px; color: var(--md-on-surface-variant); line-height: 1.6; font-size: 18px; font-weight: 500; }
+        .modal-card li { margin-bottom: 8px; }
+
+        .modal-cta-footer {
+            background: var(--md-surface);
+            border-top: 1px solid var(--md-outline);
+            padding: 16px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            bottom: 0;
+            z-index: 201;
+        }
+
+        .cta-icon-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
+            background: var(--md-surface-variant);
+            border: 2px solid var(--md-outline);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--md-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--md-elevation-1);
+        }
+        .cta-icon-btn:active { transform: scale(0.9); box-shadow: var(--md-elevation-2); background: var(--md-primary); color: var(--md-on-primary); }
+        .cta-icon-btn svg { width: 24px; height: 24px; fill: currentColor; }
+
+        /* Developer Specific Styles */
+        .dev-header-card { text-align: center; }
+        .dev-photo { width: 150px; height: 150px; aspect-ratio: 1; flex-shrink: 0; border-radius: 50%; object-fit: cover; margin: 0 auto 16px; border: 4px solid var(--md-primary); box-shadow: var(--md-elevation-2); background: #e0e0e0; display: block; }
+        .dev-name { font-size: 26px; font-weight: 800; color: var(--md-on-surface); margin-bottom: 4px; }
+        .dev-role { font-size: 16px; font-weight: 700; color: var(--md-primary); margin-bottom: 16px; letter-spacing: 0.5px; }
+        .dev-bio-container { margin-bottom: 16px; }
+        .dev-bio { font-size: 19px; font-style: normal; color: var(--md-on-surface-variant); line-height: 1.5; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .dev-bio.expanded { -webkit-line-clamp: unset; }
+        .show-more-btn { background: none; border: none; color: var(--md-primary); font-size: 20px; font-weight: 800; cursor: pointer; margin-top: 4px; padding: 0; }
+        .portfolio-btn { width: 100%; padding: 14px; background-color: var(--md-surface-variant); color: var(--md-primary); border: 2px solid var(--md-primary); border-radius: 20px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 16px; display: block; text-align: center; text-decoration: none; }
+        .portfolio-btn:active { background-color: var(--md-primary); color: var(--md-on-primary); }
+
+        .dev-stats-card { display: flex; justify-content: space-between; padding: 20px 16px; background: var(--md-surface); border-radius: 16px; box-shadow: var(--md-elevation-1); margin-bottom: 20px; }
+        .dev-stat { text-align: center; flex: 1; }
+        .dev-stat.center { border-left: 2px solid var(--md-surface-variant); border-right: 2px solid var(--md-surface-variant); }
+        .dev-stat h4 { font-size: 22px; font-weight: 800; color: var(--md-primary); margin-bottom: 4px; }
+        .dev-stat p { font-size: 12px; font-weight: 700; color: var(--md-on-surface-variant); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .dev-portfolio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .portfolio-item { background: var(--md-surface-variant); border: 2px solid var(--md-outline); padding: 16px; border-radius: 12px; text-align: center; font-weight: 700; color: var(--md-primary); text-decoration: none; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: var(--md-elevation-1); }
+        .portfolio-item:active { transform: scale(0.95); background: var(--md-primary); color: var(--md-on-primary); }
+
+        /* Existing App Styles */
+        .main-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0; position: relative; z-index: 1; }
+        .page { display: none; padding: 20px 16px; min-height: 100%; }
+        .page.active { display: block; }
+        
+        .md-card { background-color: var(--md-surface); border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid var(--md-outline); box-shadow: var(--md-elevation-1); }
+        .md-input-field { margin-bottom: 20px; }
+        .md-label { display: block; font-size: 16px; font-weight: 500; color: var(--md-on-surface-variant); margin-bottom: 8px; letter-spacing: 0.4px; }
+        .md-input-wrapper { position: relative; border: 2px solid var(--md-outline); border-radius: 8px 8px 0 0; background-color: var(--md-surface-variant); transition: all 0.3s; }
+        .md-input-wrapper:focus-within { border-color: var(--md-primary); border-width: 2px; background-color: var(--md-surface); }
+        .md-input-wrapper.error { border-color: var(--md-error); }
+        .md-prefix, .md-suffix { position: absolute; top: 50%; transform: translateY(-50%); color: var(--md-on-surface); font-weight: 500; font-size: 17px; pointer-events: none; }
+        .md-prefix { left: 16px; }
+        .md-suffix { right: 16px; }
+        .md-input { width: 100%; padding: 16px 50px 16px 40px; border: none; outline: none; font-size: 17px; font-weight: 600; color: var(--md-on-surface); background-color: transparent; font-family: inherit; }
+        .md-input.percent-input { padding: 16px 45px 16px 16px; }
+        .md-error-text { color: var(--md-error); font-size: 14px; font-weight: 500; margin-top: 4px; padding-left: 16px; display: none; }
+
+        .currency-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+        .currency-btn { flex: 1; padding: 10px; border: 2px solid var(--md-outline); background-color: var(--md-surface); color: var(--md-on-surface); border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 17px; transition: all 0.3s; font-family: inherit; }
+        .currency-btn.active-currency { background-color: var(--md-primary); color: var(--md-on-primary); border-color: var(--md-primary); }
+        .md-btn { width: 100%; padding: 18px; background-color: var(--md-primary); color: var(--md-on-primary); border: none; border-radius: 20px; font-size: 17px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; transition: all 0.3s; box-shadow: var(--md-elevation-2); font-family: inherit; }
+        .md-btn:active { box-shadow: var(--md-elevation-3); filter: brightness(0.9); }
+
+        .calc-display { background-color: var(--md-surface); padding: 10px 16px; margin-bottom: 10px; text-align: right; min-height: 120px; display: flex; flex-direction: column; justify-content: flex-end; position: relative; }
+        .calc-top-bar { position: absolute; top: 0; left: 16px; right: 16px; display: flex; justify-content: space-between; color: var(--md-on-surface-variant); }
+        .calc-toggle { background: none; border: none; color: inherit; cursor: pointer; padding: 8px; }
+        .calc-expression { color: var(--md-on-surface); font-size: 42px; font-weight: 500; word-break: break-all; margin-bottom: 4px; line-height: 1.1; }
+        .calc-result { color: var(--md-on-surface-variant); font-size: 24px; font-weight: 600; min-height: 28px; margin-bottom: 24px; }
+        .calc-backspace { position: absolute; bottom: 4px; right: 12px; background: none; border: none; color: var(--md-on-surface-variant); cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; transition: transform 0.15s, color 0.15s; }
+        .calc-backspace:active { transform: scale(0.9); color: var(--md-on-surface); }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 16px; }
+        .calc-grid.scientific { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .calc-btn { aspect-ratio: 1.1; border: none; background-color: var(--md-surface-variant); color: var(--md-on-surface); font-size: 24px; font-weight: 600; border-radius: 24px; cursor: pointer; transition: transform 0.15s, background-color 0.15s; font-family: inherit; display: flex; align-items: center; justify-content: center; }
+        .calc-btn:active { transform: scale(0.92); background-color: #e0e0e0; }
+        .calc-btn.operator { background-color: #f0f0f0; }
+        .calc-btn.action { background-color: #f0f0f0; color: var(--md-error); }
+        .calc-btn.equals { background-color: #4285f4; color: #ffffff; }
+        .calc-btn.equals.themed { background-color: var(--md-primary); }
+        .sci-btn { display: none; background-color: var(--md-surface); font-size: 16px; }
+        .calc-grid.scientific .sci-btn { display: flex; }
+        .calc-grid.scientific .calc-btn { font-size: 20px; border-radius: 16px; }
+
+        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
+        .weekday { text-align: center; font-size: 14px; font-weight: 600; color: #9e9e9e; padding: 8px 0; text-transform: uppercase; letter-spacing: 1px; }
+        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .day-cell { width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 16px; font-weight: 500; color: var(--md-on-surface); cursor: pointer; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, box-shadow 0.2s; position: relative; }
+        .day-cell.today { background-color: var(--md-primary); color: var(--md-on-primary); font-weight: 700; }
+        .day-cell.other-month { color: #bdbdbd; }
+        .day-cell.holiday::after { content: ''; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background-color: var(--md-error); }
+        .day-cell.today.holiday::after { background-color: #FFD700; }
+        .holidays-list { margin-top: 16px; border-top: 2px solid var(--md-outline); padding-top: 16px; }
+        .holiday-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
+        .holiday-date { font-size: 13px; color: var(--md-on-surface-variant); }
+        .holiday-name { font-size: 14px; font-weight: 500; color: var(--md-primary); }
+
+        .alarm-display { text-align: center; padding: 24px 20px; background-color: var(--md-surface-variant); border-radius: 12px; border: 1px solid var(--md-outline); margin-bottom: 16px; }
+        .current-time { font-size: 48px; font-weight: 600; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+        .current-date { font-size: 18px; color: var(--md-on-surface-variant); margin-top: 4px; }
+        .timezone-badge { display: inline-block; background-color: var(--md-primary); color: var(--md-on-primary); padding: 4px 12px; border-radius: 12px; font-size: 17px; margin-top: 8px; font-weight: 500; }
+        .alarm-form { margin-top: 16px; }
+        .time-picker { display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .time-picker input { width: 65px; padding: 12px 8px; border: 2px solid var(--md-outline); border-radius: 8px; font-size: 20px; font-weight: 700; text-align: center; font-family: inherit; background-color: var(--md-surface); color: var(--md-on-surface); }
+        .time-picker select { padding: 12px; border: 2px solid var(--md-outline); border-radius: 8px; font-size: 18px; font-weight: 600; font-family: inherit; background: var(--md-surface); color: var(--md-on-surface); }
+        .alarm-list { margin-top: 16px; }
+        .alarm-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background-color: var(--md-surface-variant); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--md-outline); }
+        .alarm-time { font-size: 24px; font-weight: 700; }
+        .alarm-toggle { width: 52px; height: 32px; border-radius: 16px; border: 2px solid var(--md-outline); background-color: var(--md-surface); cursor: pointer; position: relative; transition: all 0.3s; }
+        .alarm-toggle.active { background-color: var(--md-primary); border-color: var(--md-primary); }
+        .alarm-toggle::after { content: ''; position: absolute; width: 24px; height: 24px; border-radius: 50%; background-color: var(--md-on-surface-variant); top: 2px; left: 2px; transition: all 0.3s; }
+        .alarm-toggle.active::after { left: 22px; background-color: #ffffff; }
+        .delete-alarm { background: none; border: none; color: var(--md-error); font-size: 20px; cursor: pointer; padding: 8px; }
+        .result-card { border: 2px solid var(--md-primary); border-radius: 12px; padding: 16px; margin-top: 16px; background-color: var(--md-surface); }
+        .result-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.08); }
+        .result-row:last-child { border-bottom: none; }
+        .result-value.large { font-size: 24px; font-weight: 700; color: var(--md-primary); }
+
+        .bottom-nav { display: flex; background-color: var(--md-surface); border-top: 2px solid var(--md-outline); box-shadow: 0 -2px 8px rgba(0,0,0,0.1); padding: 0; z-index: 10; position: relative; }
+        .nav-item { flex: 1; padding: 12px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; border: none; background: none; color: var(--md-on-surface-variant); transition: all 0.3s; font-family: inherit; position: relative; }
+        .nav-item.active { color: var(--md-primary); }
+        .nav-item.active::before { content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 3px; background-color: var(--md-primary); border-radius: 0 0 3px 3px; }
+        .nav-icon { width: 28px; height: 28px; fill: currentColor; }
+        .nav-label { font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
+        .hint-text { font-size: 14px; color: var(--md-on-surface-variant); margin-top: 8px; text-align: center; }
+
+        @media (min-width: 431px) {
+            .app-shell { height: 90vh; height: 90dvh; border-radius: 24px; overflow: hidden; margin: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Multi-Utility Pro</h2>
+                <p>Kingdom Productivity</p>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-item" onclick="closeSidebar()" style="color: #ff3b30; font-weight: 800;">
+                    <svg viewBox="0 0 24 24" style="fill: currentColor;"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    Exit Menu
+                </div>
+                <hr style="border: 0; border-top: 2px solid var(--md-outline); margin: 8px 16px 16px 16px; opacity: 0.2;">
+                <div class="sidebar-item" onclick="switchPage('about')">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                    About the App
+                </div>
+                <div class="sidebar-item" onclick="switchPage('developer')">
+                    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    About Developer
+                </div>
+                <div class="sidebar-item" onclick="switchPage('guidelines')">
+                    <svg viewBox="0 0 24 24"><path d="M18 17H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2zM3 22l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2L7.5 3.5 6 2 4.5 3.5 3 2v20z"/></svg>
+                    Guidelines
+                </div>            
+                <div class="sidebar-item" onclick="switchPage('support')">
+                    <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    Support Us
+                </div>
+                <div class="sidebar-item" onclick="switchPage('team')">
+                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    Team
+                </div>
+                <div style="height: 1px; background: var(--md-outline); opacity: 0.3; margin: 8px 16px;"></div>
+                <div class="sidebar-item" onclick="installApp()" style="color: var(--md-primary); font-weight: 700;">
+                    <svg viewBox="0 0 24 24" style="fill: var(--md-primary);"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    Install App
+                </div>
+                <div class="sidebar-item" onclick="shareApp()" style="color: var(--md-primary); font-weight: 700;">
+                    <svg viewBox="0 0 24 24" style="fill: var(--md-primary);"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3c0-.24-.04-.47-.09-.7l7.05 4.11c-.05.22-.09.45-.09.69 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/></svg>
+                    Share App
+                  </div>
+                  </div>
+                  </div>
+        <div class="top-bar">
+            <button class="menu-btn" onclick="openSidebar()">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+            </button>
+            <h1 id="appTitle">Loan Calculator</h1>
+            <button id="colorPaletteBtn" class="color-palette-btn" onclick="toggleColorPanel()" aria-label="Change theme color">
+                <svg viewBox="0 0 24 24" style="width: 22px; height: 22px; fill: #ffffff;"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8z"/></svg>
+            </button>
+        </div>
+        
+        <div class="color-panel" id="colorPanel">
+            <div class="color-option" style="background-color: #000000;" onclick="switchColor('#000000', this)"></div>
+            <div class="color-option active-color" style="background-color: #25D366;" onclick="switchColor('#25D366', this)"></div>
+            <div class="color-option" style="background-color: #1A73E8;" onclick="switchColor('#1A73E8', this)"></div>
+            <div class="color-option" style="background-color: #E91E63;" onclick="switchColor('#E91E63', this)"></div>
+            <div class="color-option" style="background-color: #9C27B0;" onclick="switchColor('#9C27B0', this)"></div>
+            <div class="color-option" style="background-color: #FF6D00;" onclick="switchColor('#FF6D00', this)"></div>
+            <div class="color-option" style="background-color: #00BCD4;" onclick="switchColor('#00BCD4', this)"></div>
+            <div class="color-option" style="background-color: #4CAF50;" onclick="switchColor('#4CAF50', this)"></div>
+            <div class="color-option" style="background-color: #F44336;" onclick="switchColor('#F44336', this)"></div>
+            <div class="color-option" style="background-color: #3F51B5;" onclick="switchColor('#3F51B5', this)"></div>
+            <div class="color-option" style="background-color: #FFC107;" onclick="switchColor('#FFC107', this)"></div>
+            <div class="color-option" style="background-color: #795548;" onclick="switchColor('#795548', this)"></div>
+        </div>
+        
+        <div class="main-content">
+            <div class="page active" id="loanPage">
+                <div class="md-card">
+                    <div class="currency-toggle">
+                        <button class="currency-btn active-currency" onclick="switchCurrency('NGN', this)">Naira (&#8358;)</button>
+                        <button class="currency-btn" onclick="switchCurrency('USD', this)">Dollar ($)</button>
+                    </div>
+                    <div class="md-input-field">
+                        <label class="md-label">Loan Amount</label>
+                        <div class="md-input-wrapper" id="amountWrapper">
+                            <span class="md-prefix" id="currencySymbol">&#8358;</span>
+                            <input type="number" class="md-input" id="loanAmount" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                        <div class="md-error-text" id="amountError">Enter valid amount</div>
+                    </div>
+                    <div class="md-input-field">
+                        <label class="md-label">Loan Term (Years)</label>
+                        <div class="md-input-wrapper" id="termWrapper">
+                            <input type="number" class="md-input" id="loanTerm" placeholder="0" min="0" step="0.01" style="padding-left: 16px;">
+                        </div>
+                        <div class="md-error-text" id="termError">Enter valid term</div>
+                    </div>
+                    <div class="md-input-field">
+                        <label class="md-label">Annual Interest Rate</label>
+                        <div class="md-input-wrapper" id="rateWrapper">
+                            <input type="number" class="md-input percent-input" id="interestRate" placeholder="0" min="0" step="0.01">
+                            <span class="md-suffix">%</span>
+                        </div>
+                        <div class="md-error-text" id="rateError">Enter valid rate</div>
+                    </div>
+                    <button class="md-btn" onclick="calculateLoan()">Calculate Payment</button>
+                    <div class="result-card" id="resultSection" style="display: none;">
+                        <div class="result-row"><span>Monthly Payment</span><span class="result-value large" id="monthlyPayment">$0.00</span></div>
+                        <div class="result-row"><span>Total Payment</span><span class="result-value" id="totalPayment">$0.00</span></div>
+                        <div class="result-row"><span>Total Interest</span><span class="result-value" id="totalInterest">$0.00</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="calcPage">
+                <div class="calc-display">
+                    <div class="calc-top-bar">
+                        <button class="calc-toggle" onclick="document.getElementById('mainCalcGrid').classList.toggle('scientific')">
+                            <svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M21 21H3V3h18v18zM5 19h14V5H5v14zM8 17h2v-2H8v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2zm-8-4h2v-2H8v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2zm-8-4h2V7H8v2zm4 0h2V7h-2v2zm4 0h2V7h-2v2z"/></svg>
+                        </button>
+                    </div>
+                    <div class="calc-expression" id="expression">0</div>
+                    <div class="calc-result" id="display"></div>
+                    <button class="calc-backspace" onclick="deleteLast()">
+                        <svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="currentColor" d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z"/></svg>
+                    </button>
+                </div>
+                <div class="calc-grid" id="mainCalcGrid">
+                    <button class="calc-btn sci-btn" onclick="appendFunc('Math.sin(')">sin</button>
+                    <button class="calc-btn sci-btn" onclick="appendFunc('Math.cos(')">cos</button>
+                    <button class="calc-btn sci-btn" onclick="appendFunc('Math.tan(')">tan</button>
+                    <button class="calc-btn sci-btn" onclick="appendFunc('Math.log10(')">log</button>
+                    <button class="calc-btn sci-btn" onclick="appendFunc('Math.sqrt(')">√</button>
+                    <button class="calc-btn action" onclick="clearAll()">C</button>
+                    <button class="calc-btn operator" onclick="appendOperator('(')">(</button>
+                    <button class="calc-btn operator" onclick="appendOperator(')')">)</button>
+                    <button class="calc-btn operator" onclick="appendOperator('/')">÷</button>
+                    <button class="calc-btn sci-btn" onclick="appendFunc('Math.PI')">π</button>
+                    <button class="calc-btn" onclick="appendNumber('7')">7</button>
+                    <button class="calc-btn" onclick="appendNumber('8')">8</button>
+                    <button class="calc-btn" onclick="appendNumber('9')">9</button>
+                    <button class="calc-btn operator" onclick="appendOperator('*')">×</button>
+                    <button class="calc-btn sci-btn" onclick="appendOperator('**')">^</button>
+                    <button class="calc-btn" onclick="appendNumber('4')">4</button>
+                    <button class="calc-btn" onclick="appendNumber('5')">5</button>
+                    <button class="calc-btn" onclick="appendNumber('6')">6</button>
+                    <button class="calc-btn operator" onclick="appendOperator('-')">-</button>
+                    <button class="calc-btn sci-btn" onclick="appendFunc('Math.E')">e</button>
+                    <button class="calc-btn" onclick="appendNumber('1')">1</button>
+                    <button class="calc-btn" onclick="appendNumber('2')">2</button>
+                    <button class="calc-btn" onclick="appendNumber('3')">3</button>
+                    <button class="calc-btn operator" onclick="appendOperator('+')">+</button>
+                    <button class="calc-btn sci-btn" onclick="appendOperator('%')">%</button>
+                    <button class="calc-btn operator" onclick="toggleSign()">+/-</button>
+                    <button class="calc-btn" onclick="appendNumber('0')">0</button>
+                    <button class="calc-btn" onclick="appendDecimal()">.</button>
+                    <button class="calc-btn equals themed" onclick="calculate()">=</button>
+                    <button class="calc-btn sci-btn operator" onclick="appendOperator('!')">x!</button>
+                </div>
+            </div>
+
+            <div class="page" id="calPage">
+                <div class="cal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <button class="cal-nav" onclick="changeMonth(-1)" style="background: none; border: none; cursor: pointer; padding: 8px;">
+                        <svg viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                    </button>
+                    <div class="cal-month" id="monthYear" style="font-size: 18px; font-weight: 600;"></div>
+                    <button class="cal-nav" onclick="changeMonth(1)" style="background: none; border: none; cursor: pointer; padding: 8px;">
+                        <svg viewBox="0 0 24 24" style="width: 24px; height: 24px;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                    </button>
+                </div>
+                <div class="weekdays">
+                    <div class="weekday">S</div><div class="weekday">M</div><div class="weekday">T</div>
+                    <div class="weekday">W</div><div class="weekday">T</div><div class="weekday">F</div>
+                    <div class="weekday">S</div>
+                </div>
+                <div class="days-grid" id="daysGrid"></div>
+                <div class="holidays-list" id="holidaysList"></div>
+            </div>
+
+            <div class="page" id="alarmPage">
+                <div class="alarm-display">
+                    <div class="current-time" id="currentTime">12:00:00 AM</div>
+                    <div class="current-date" id="currentDate">Loading...</div>
+                    <div class="timezone-badge" id="timezoneDisplay">Timezone: Detecting...</div>
+                </div>
+                <div class="md-card alarm-form">
+                    <div class="md-label">Set Alarm (12-Hour Format)</div>
+                    <div class="time-picker">
+                        <input type="number" id="alarmHours" placeholder="HH" min="1" max="12">
+                        <span style="font-size: 24px; font-weight: 700;">:</span>
+                        <input type="number" id="alarmMinutes" placeholder="MM" min="0" max="59">
+                        <select id="alarmAmPm">
+                          <option value="AM">AM</option>
+                          <option value="PM">PM</option>
+                        </select>
+                        <select id="alarmType" style="margin-top: 8px; width: 100%; padding: 12px; border: 2px solid var(--md-outline); border-radius: 8px; font-size: 16px; font-weight: 600; background: var(--md-surface); color: var(--md-on-surface); font-family: inherit;">
+                            <option value="Standard">Standard Alarm</option>
+                            <option value="Prayer">Prayer Alarm</option>
+                            <option value="Meditation">Scripture Meditation</option>
+                        </select>
+                    </div>
+                    <button class="md-btn" onclick="setAlarm()">Set Alarm</button>
+                </div>
+                <div class="alarm-list" id="alarmList">
+                    <div class="md-label">Active Alarms</div>
+                </div>
+            </div>
+        </div>
+
+    <div class="full-modal" id="aboutModal">
+            <div class="modal-header">
+                <button class="back-btn" onclick="closeModalToMenu()">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <h2>About the App</h2>
+                <div style="width: 28px;"></div>
+            </div>
+            
+            <div class="modal-body">
+                <div class="modal-card">
+                    <h3>Multi-Utility Pro</h3>
+                    <p>Designed with a singular vision: to empower believers and ministry leaders with reliable, focused tools for daily kingdom productivity.</p>
+                    <p>Whether you are calculating financial stewardship, scheduling global prayer alerts for unreached nations, or organizing your spiritual calendar, this platform exists to support your mission without the distractions of modern bloatware.</p>
+                </div>
+                <div class="modal-card">
+                    <h3>Our Mission</h3>
+                    <p>To leverage clean, secure technology for the advancement of the Great Commission, equipping laborers for the harvest.</p>
+                </div>
+            </div>
+          <div class="modal-cta-footer">
+                <a href="mailto:contact@ministry.org" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+                <a href="tel:+123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>
+                <a href="https://wa.me/123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35m-5.42 7.4h0a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.89-9.89 9.89m8.41-18.3A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.69 1.45h0c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 00-3.48-8.41z"/></svg></a>
+                <a href="#" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg></a>
+            </div>
+        </div>
+
+        <div class="full-modal" id="developerModal">
+            <div class="modal-header">
+                <button class="back-btn" onclick="closeModalToMenu()">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <h2>About Developer</h2>
+                <div style="width: 28px;"></div>
+            </div>
+            <div class="modal-body">
+                <div class="dev-header-card">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><rect width='150' height='150' fill='%23cccccc'/><circle cx='75' cy='60' r='30' fill='%23999'/><path d=&quot;M30 130 Q 75 90 120 130&quot; stroke='%23999' stroke-width='15' fill='none'/></svg>" alt="Developer Photo" class="dev-photo">
+                    <div class="dev-name">Dr. Johnson</div>
+                    <div class="dev-role">Lead Architect & Kingdom Developer</div>
+                    <div class="dev-bio-container">
+                        <div class="dev-bio" id="devBioText">"Committed to building digital infrastructure that empowers the global church, streamlines ministry operations, and actively accelerates the Great Commission. Every tool is crafted with precision, prayer, and a vision to serve the body of Christ effectively."</div>
+                        <button class="show-more-btn" id="bioToggleBtn" onclick="toggleBio()">Show More</button>
+                    </div>
+                    <a href="https://your-portfolio-website.com" target="_blank" rel="noopener noreferrer" class="portfolio-btn">View Developer Portfolio</a>
+                </div>
+                <div style="height: 24px;"></div>
+                <div class="dev-stats-card">
+                    <div class="dev-stat">
+                        <h4>10+</h4>
+                        <p>Years Exp</p>
+                    </div>
+                    <div class="dev-stat center">
+                        <h4>5</h4>
+                        <p>Web Apps</p>
+                    </div>
+                    <div class="dev-stat">
+                        <h4>100%</h4>
+                        <p>Mission</p>
+                    </div>
+                </div>
+                <div class="modal-card" id="portfolioSection" style="padding: 16px; background: transparent; box-shadow: none; border: none; padding-bottom: 0;">
+                    <h3 style="text-align: center; font-size: 20px; font-weight: 800; color: var(--md-on-surface);">App Portfolio</h3>
+                </div>
+               
+                <div class="dev-portfolio-grid">
+                    <a href="#" class="portfolio-item">Kingdom Dialer</a>
+                    <a href="#" class="portfolio-item">Prayer Tracker</a>
+                    <a href="#" class="portfolio-item">Gospel Outreach</a>
+                    <a href="#" class="portfolio-item">Sermon Notes</a>
+                </div>
+            </div>
+            <div class="modal-cta-footer">
+                <a href="mailto:contact@ministry.org" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+                <a href="tel:+123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>
+                <a href="https://wa.me/123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35m-5.42 7.4h0a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.89-9.89 9.89m8.41-18.3A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.69 1.45h0c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 00-3.48-8.41z"/></svg></a>
+                <a href="#" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg></a>
+            </div>
+        </div>
+
+        <div class="full-modal" id="guidelinesModal">
+            <div class="modal-header">
+                <button class="back-btn" onclick="closeModalToMenu()">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <h2>Guidelines</h2>
+                <div style="width: 28px;"></div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-card">
+                    <h3>How to Use</h3>
+                    <ul>
+                        <li><strong>Loan Calculator:</strong> Input your principal, term, and rate to forecast financial stewardship.</li>
+                        <li><strong>Smart Calc:</strong> Toggle the top-left button for advanced scientific operations.</li>
+                        <li><strong>Calendar:</strong> Tap arrows to navigate. Days marked with red dots indicate global prayer events.</li>
+                        <li><strong>Alarms:</strong> Set daily times to trigger continuous, screen-locking reminders for prayer.</li>
+                    </ul>
+                </div>
+                <div class="modal-card">
+                    <h3>Community Standards</h3>
+                    <p>This application is provided free of charge for the edification of the body of Christ. We ask that all users utilize these tools with integrity, operating in love, and maintaining focus on global discipleship.</p>
+                </div>
+            </div>
+            <div class="modal-cta-footer">
+                <a href="mailto:contact@ministry.org" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+                <a href="tel:+123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>
+                <a href="https://wa.me/123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35m-5.42 7.4h0a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.89-9.89 9.89m8.41-18.3A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.69 1.45h0c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 00-3.48-8.41z"/></svg></a>
+                <a href="#" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg></a>
+            </div>
+        </div>
+     
+        <div class="full-modal" id="supportModal">
+            <div class="modal-header">
+                <button class="back-btn" onclick="closeModalToMenu()">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <h2>Support Us</h2>
+                <div style="width: 28px;"></div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-card">
+                    <h3>Partner with the Vision</h3>
+                    <p>Maintaining, upgrading, and hosting this digital infrastructure requires resources. Your partnership enables us to continue providing these vital tools to missionaries and ministry leaders globally.</p>
+                </div>
+                <div class="modal-card">
+                    <h3>Contact Us directly</h3>
+                    <p>Use the buttons below to reach our support team regarding partnerships, feature requests, or technical assistance.</p>
+                </div>
+            </div>
+         <div class="modal-cta-footer">
+                <a href="mailto:contact@ministry.org" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+                <a href="tel:+123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>
+                <a href="https://wa.me/123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35m-5.42 7.4h0a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.89-9.89 9.89m8.41-18.3A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.69 1.45h0c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 00-3.48-8.41z"/></svg></a>
+                <a href="#" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg></a>
+            </div>
+        </div>
+
+        <div class="full-modal" id="teamModal">
+            <div class="modal-header">
+                <button class="back-btn" onclick="closeModalToMenu()">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <h2>Our Team</h2>
+                <div style="width: 28px;"></div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-card">
+                    <div class="dev-header-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><rect width='140' height='140' fill='%23cccccc'/><circle cx='75' cy='60' r='30' fill='%23999'/><path d=&quot;M30 130 Q 75 90 120 130&quot; stroke='%23999' stroke-width='15' fill='none'/></svg>" alt="Team Member 1" class="dev-photo">
+                        <div class="dev-name">Jane Doe</div>
+                        <div class="dev-role">Lead Designer</div>
+                        <div class="dev-bio-container">
+                       <div class="dev-bio" id="teamBio1">"Passionate about creating intuitive interfaces that serve the global church and enhance user engagement. Dedicated to ensuring our applications are accessible, clean, and distraction-free for all ministry laborers on the field."</div>
+                       <button class="show-more-btn" onclick="document.getElementById('teamBio1').classList.toggle('expanded'); this.textContent = this.textContent === 'Show More' ? 'Show Less' : 'Show More';">Show More</button>                    
+                        <a href="https://wa.me/123456789" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; background-color: var(--md-primary); color: #ffffff; text-decoration: none; padding: 14px 24px; border-radius: 50px; font-weight: 800; font-size: 18px; margin-top: 16px; gap: 10px; box-shadow: var(--md-elevation-1);">
+                            <svg viewBox="0 0 24 24" style="width: 26px; height: 26px; fill: currentColor;"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35m-5.42 7.4h0a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.89-9.89 9.89m8.41-18.3A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.69 1.45h0c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 00-3.48-8.41z"/></svg>
+                            <span style="text-decoration: underline;">Chat With me on WhatsApp</span>
+                        </a>
+                    </div>
+                </div>
+               </div>
+               
+                <div class="modal-card">
+                    <div class="dev-header-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><rect width='140' height='140' fill='%23cccccc'/><circle cx='75' cy='60' r='30' fill='%23999'/><path d=&quot;M30 130 Q 75 90 120 130&quot; stroke='%23999' stroke-width='15' fill='none'/></svg>" alt="Team Member 2" class="dev-photo">
+                        <div class="dev-name">John Smith</div>
+                        <div class="dev-role">Operations Director</div>
+                        <div class="dev-bio-container">
+                            <div class="dev-bio" id="teamBio2">"Dedicated to scaling infrastructure and ensuring our tools reach ministries and organizations worldwide securely. Focused on robust backend integrations and bridging the gap between field missionaries and digital resources."</div>
+                            <button class="show-more-btn" onclick="document.getElementById('teamBio2').classList.toggle('expanded'); this.textContent = this.textContent === 'Show More' ? 'Show Less' : 'Show More';">Show More</button>
+                        </div>
+                    </div>
+                </div>
+         
+                <div class="modal-card">
+                    <div class="dev-header-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><rect width='150' height='150' fill='%23cccccc'/><circle cx='75' cy='60' r='30' fill='%23999'/><path d=&quot;M30 130 Q 75 90 120 130&quot; stroke='%23999' stroke-width='15' fill='none'/></svg>" alt="Team Member 3" class="dev-photo">
+                        <div class="dev-name">Sarah Lee</div>
+                        <div class="dev-role">Frontend Engineer</div>
+                        <div class="dev-bio-container">
+                            <div class="dev-bio" id="teamBio3">"Bringing designs to life with clean, efficient code. Focused on performance and ensuring seamless experiences across all mobile devices."</div>
+                            <button class="show-more-btn" onclick="document.getElementById('teamBio3').classList.toggle('expanded'); this.textContent = this.textContent === 'Show More' ? 'Show Less' : 'Show More';">Show More</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-card">
+                    <div class="dev-header-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><rect width='150' height='150' fill='%23cccccc'/><circle cx='75' cy='60' r='30' fill='%23999'/><path d=&quot;M30 130 Q 75 90 120 130&quot; stroke='%23999' stroke-width='15' fill='none'/></svg>" alt="Team Member 4" class="dev-photo">
+                        <div class="dev-name">David Chen</div>
+                        <div class="dev-role">Backend Architect</div>
+                        <div class="dev-bio-container">
+                            <div class="dev-bio" id="teamBio4">"Specializes in secure data routing and server management. Working hard to ensure our Kingdom productivity tools are always online and lightning fast."</div>
+                            <button class="show-more-btn" onclick="document.getElementById('teamBio4').classList.toggle('expanded'); this.textContent = this.textContent === 'Show More' ? 'Show Less' : 'Show More';">Show More</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-card">
+                    <div class="dev-header-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><rect width='150' height='150' fill='%23cccccc'/><circle cx='75' cy='60' r='30' fill='%23999'/><path d=&quot;M30 130 Q 75 90 120 130&quot; stroke='%23999' stroke-width='15' fill='none'/></svg>" alt="Team Member 5" class="dev-photo">
+                        <div class="dev-name">Grace Taylor</div>
+                        <div class="dev-role">Community Manager</div>
+                        <div class="dev-bio-container">
+                            <div class="dev-bio" id="teamBio5">"Connecting our technology with the people who need it most. I handle user support, feature requests, and ensure our app aligns with ministry needs."</div>
+                            <button class="show-more-btn" onclick="document.getElementById('teamBio5').classList.toggle('expanded'); this.textContent = this.textContent === 'Show More' ? 'Show Less' : 'Show More';">Show More</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-card">
+                    <div class="dev-header-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><rect width='150' height='150' fill='%23cccccc'/><circle cx='75' cy='60' r='30' fill='%23999'/><path d=&quot;M30 130 Q 75 90 120 130&quot; stroke='%23999' stroke-width='15' fill='none'/></svg>" alt="Team Member 6" class="dev-photo">
+                        <div class="dev-name">Michael Brown</div>
+                        <div class="dev-role">QA Specialist</div>
+                        <div class="dev-bio-container">
+                            <div class="dev-bio" id="teamBio6">"Testing every button, input, and workflow to guarantee that our digital tools never fail when you need them in the field."</div>
+                            <button class="show-more-btn" onclick="document.getElementById('teamBio6').classList.toggle('expanded'); this.textContent = this.textContent === 'Show More' ? 'Show Less' : 'Show More';">Show More</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-card">
+                    <div class="dev-header-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'><rect width='150' height='150' fill='%23cccccc'/><circle cx='75' cy='60' r='30' fill='%23999'/><path d=&quot;M30 130 Q 75 90 120 130&quot; stroke='%23999' stroke-width='15' fill='none'/></svg>" alt="Team Member 7" class="dev-photo">
+                        <div class="dev-name">Daniel Wilson</div>
+                        <div class="dev-role">Project Manager</div>
+                        <div class="dev-bio-container">
+                            <div class="dev-bio" id="teamBio7">"Orchestrating our development cycles and ensuring our roadmap stays true to our core mission of Kingdom productivity."</div>
+                            <button class="show-more-btn" onclick="document.getElementById('teamBio7').classList.toggle('expanded'); this.textContent = this.textContent === 'Show More' ? 'Show Less' : 'Show More';">Show More</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+              
+            <div class="modal-cta-footer">
+                <a href="mailto:contact@ministry.org" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></a>
+                <a href="tel:+123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>
+                <a href="https://wa.me/123456789" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.06 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35m-5.42 7.4h0a9.87 9.87 0 01-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 01-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.82 9.82 0 012.89 6.99c0 5.45-4.44 9.89-9.89 9.89m8.41-18.3A11.82 11.82 0 0012.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 005.69 1.45h0c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 00-3.48-8.41z"/></svg></a>
+                <a href="#" class="cta-icon-btn"><svg viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg></a>
+            </div>
+        </div>
+
+        <div id="alarmModal" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:400; align-items:center; justify-content:center; flex-direction:column;">
+            <div style="background:var(--md-surface); padding:24px; border-radius:16px; width:85%; max-width:320px; text-align:center; box-shadow:var(--md-elevation-3);">
+                <div id="modalTitle" style="font-size:22px; font-weight:800; color:var(--md-primary); margin-bottom:12px;"></div>
+                <div id="modalContent" style="font-size:17px; color:var(--md-on-surface-variant); margin-bottom:24px; font-style:italic; line-height:1.4; font-weight: 500;"></div>
+                <button class="md-btn" onclick="dismissAlarm()">Amen / Dismiss</button>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="switchPage('loan', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/></svg>
+                <span class="nav-label">Loan</span>
+            </button>
+            <button class="nav-item" onclick="switchPage('calc', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2V9h-2V7h4v10z"/></svg>
+                <span class="nav-label">Calc</span>
+            </button>
+            <button class="nav-item" onclick="switchPage('cal', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>
+                <span class="nav-label">Calendar</span>
+            </button>
+            <button class="nav-item" onclick="switchPage('alarm', this)">
+                <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12.5 8H11v6l4.75 2.85.75-1.23-4-2.37V8zM12 4c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+                <span class="nav-label">Alarm</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== NATIVE ANDROID ALARM BRIDGE ====================
+        // If this page is running inside the native wrapper, window.NativeAlarm
+        // exists and every alarm gets scheduled with Android's real AlarmManager,
+        // so it fires even if the screen is locked or the app is closed.
+        // If it's absent (plain browser/PWA), alarms fall back to firing only
+        // while this page stays open, exactly as before.
+        function nativeAlarmAvailable() {
+            return !!(window.NativeAlarm && window.NativeAlarm.scheduleAlarm);
+        }
+
+        // ==================== GLOBAL + NIGERIAN HOLIDAYS ====================
+        const allHolidays = {
+            0: { 1: "New Year's Day", 21: "Fasting & Prayer" },
+            1: { 14: "Valentine's Day", 28: "Love Your Neighbor" },
+            2: { 8: "Women's Day", 15: "Pray for the Nations" },
+            3: { 9: "Resurrection Power", 22: "Earth Day" },
+            4: { 1: "Workers' Day", 19: "Global Day of Prayer", 27: "Children's Day (Nigeria)" },
+            5: { 12: "Democracy Day (Nigeria)", 21: "Father's Day" },
+            6: { 15: "Mid-Year Reflection" },
+            7: { 20: "Pray for Unreached Groups" },
+            8: { 21: "Peace Day" },
+            9: { 1: "Independence Day (Nigeria)", 31: "Light in the Darkness" },
+            10: { 25: "Thanksgiving" },
+            11: { 25: "Christmas Day (Christ is Born!)", 26: "Boxing Day (Nigeria)", 31: "New Year's Eve" }
+        };
+
+        // ==================== TIME FUNCTIONS ====================
+        const getLocalTime = () => {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            return `${hours.toString().padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+        };
+
+        const getTimezone = () => {
+            try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown'; } 
+            catch (e) { return 'Unknown'; }
+        };
+
+        const getFormattedDate = () => {
+            const now = new Date();
+            return now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        };
+
+        const validateAlarmTime = (hours, minutes, ampm) => {
+            if (isNaN(hours) || hours < 1 || hours > 12) return false;
+            if (isNaN(minutes) || minutes < 0 || minutes > 59) return false;
+            if (ampm !== 'AM' && ampm !== 'PM') return false;
+            return true;
+        };
+
+        const convertToComparable = (hours, minutes, ampm) => {
+            let h24 = parseInt(hours);
+            if (ampm === 'PM' && h24 !== 12) h24 += 12;
+            if (ampm === 'AM' && h24 === 12) h24 = 0;
+            return `${h24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        };
+
+        // ==================== STATE ====================
+        let currentCurrency = 'NGN';
+        let currentExpression = '';
+        let shouldResetDisplay = false;
+        let currentDate = new Date();
+        let today = new Date();
+        let alarms = JSON.parse(localStorage.getItem('gcAlarms')) || [];
+        let alarmAudioInterval = null;
+
+        function saveState() {
+            localStorage.setItem('gcAlarms', JSON.stringify(alarms));
+        }
+
+        // ==================== UX ADDITIONS ====================
+        function closeModalToMenu() {
+            history.back();
+            setTimeout(() => {
+                openSidebar();
+            }, 50);
+        }
+
+        function toggleBio() {
+            const bio = document.getElementById('devBioText');
+            const btn = document.getElementById('bioToggleBtn');
+            bio.classList.toggle('expanded');
+            if (bio.classList.contains('expanded')) {
+                btn.textContent = 'Show Less';
+            } else {
+                btn.textContent = 'Show More';
+            }
+        }
+
+        // ==================== PAGE SWITCHING & ROUTING ====================
+        const basePages = ['loan', 'calc', 'cal', 'alarm'];
+        const modalPages = ['about', 'developer', 'guidelines', 'support', 'team'];
+
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('active');
+            document.getElementById('sidebarOverlay').classList.add('active');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        function switchPage(page, btn = null, pushState = true) {
+            closeSidebar();
+            
+            if (basePages.includes(page)) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.full-modal').forEach(m => m.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                
+                const targetPage = document.getElementById(page + 'Page');
+                if (targetPage) targetPage.classList.add('active');
+                
+                if (btn) {
+                    btn.classList.add('active');
+                } else {
+                    const navIndex = { 'loan': 0, 'calc': 1, 'cal': 2, 'alarm': 3 }[page];
+                    const navBtns = document.querySelectorAll('.nav-item');
+                    if (navBtns[navIndex]) navBtns[navIndex].classList.add('active');
+                }
+
+                const titles = { loan: 'Loan Calculator', calc: 'Smart Calculator', cal: 'Global Calendar', alarm: 'Alarm Clock' };
+                document.getElementById('appTitle').textContent = titles[page];
+                
+                if (page === 'cal') renderCalendar();
+                if (page === 'alarm') updateClock();
+
+            } else if (modalPages.includes(page)) {
+                document.querySelectorAll('.full-modal').forEach(m => m.classList.remove('active'));
+                const targetModal = document.getElementById(page + 'Modal');
+                if (targetModal) targetModal.classList.add('active');
+            }
+
+            if (pushState) {
+                const path = page === 'loan' ? '/' : `/${page}`;
+                window.history.pushState({ page: page }, '', path);
+            }
+        }
+
+        window.addEventListener('popstate', (e) => {
+            const page = e.state && e.state.page ? e.state.page : 'loan';
+            switchPage(page, null, false);
+        });
+
+        function initRouting() {
+            const path = window.location.pathname.replace(/^\/|\/$/g, '');
+            const validPages = [...basePages, ...modalPages];
+            const startPage = validPages.includes(path) ? path : 'loan';
+            
+            window.history.replaceState({ page: startPage }, '', `/${startPage === 'loan' ? '' : startPage}`);
+            switchPage(startPage, null, false);
+        }
+
+        // ==================== COLOR SWITCHING ====================
+        function toggleColorPanel() {
+            document.getElementById('colorPanel').classList.toggle('show');
+        }
+
+        function switchColor(color, element) {
+            document.documentElement.style.setProperty('--md-primary', color);
+            document.documentElement.style.setProperty('--md-outline', color);
+            document.documentElement.style.setProperty('--md-on-primary', '#ffffff');
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('active-color'));
+            element.classList.add('active-color');
+        }
+
+        // ==================== CURRENCY SWITCHING ====================
+        function switchCurrency(currency, btn) {
+            currentCurrency = currency;
+            document.querySelectorAll('.currency-btn').forEach(b => b.classList.remove('active-currency'));
+            btn.classList.add('active-currency');
+            const symbol = currency === 'NGN' ? '\u20A6' : '$';
+            document.getElementById('currencySymbol').textContent = symbol;
+        }
+
+        // ==================== LOAN CALCULATOR ====================
+        function calculateLoan() {
+            const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+            const loanTerm = parseFloat(document.getElementById('loanTerm').value);
+            const interestRate = parseFloat(document.getElementById('interestRate').value);
+            resetLoanErrors();
+            let hasError = false;
+            if (isNaN(loanAmount) || loanAmount <= 0) { showLoanError('amountWrapper', 'amountError'); hasError = true; }
+            if (isNaN(loanTerm) || loanTerm <= 0) { showLoanError('termWrapper', 'termError'); hasError = true; }
+            if (isNaN(interestRate) || interestRate < 0) { showLoanError('rateWrapper', 'rateError'); hasError = true; }
+            if (hasError) { document.getElementById('resultSection').style.display = 'none'; return; }
+
+            const monthlyRate = (interestRate / 100) / 12;
+            const numberOfPayments = loanTerm * 12;
+            let monthlyPayment;
+            if (monthlyRate === 0) {
+                monthlyPayment = loanAmount / numberOfPayments;
+            } else {
+                monthlyPayment = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+            }
+            const totalPayment = monthlyPayment * numberOfPayments;
+            const totalInterest = totalPayment - loanAmount;
+            const symbol = currentCurrency === 'NGN' ? '\u20A6' : '$';
+            document.getElementById('monthlyPayment').textContent = symbol + monthlyPayment.toFixed(2);
+            document.getElementById('totalPayment').textContent = symbol + totalPayment.toFixed(2);
+            document.getElementById('totalInterest').textContent = symbol + totalInterest.toFixed(2);
+            document.getElementById('resultSection').style.display = 'block';
+        }
+
+        function showLoanError(wrapperId, errorId) {
+            document.getElementById(wrapperId).classList.add('error');
+            document.getElementById(errorId).style.display = 'block';
+        }
+
+        function resetLoanErrors() {
+            ['amountWrapper', 'termWrapper', 'rateWrapper'].forEach(id => document.getElementById(id).classList.remove('error'));
+            ['amountError', 'termError', 'rateError'].forEach(id => document.getElementById(id).style.display = 'none');
+        }
+
+        // ==================== CALCULATOR ====================
+        function safeEvaluate(expr) {
+            if (!expr) return '';
+            try {
+                const sanitized = expr.replace(/[^0-9+\-*/().% MathsincoetaPsqrlg!]/g, '');
+                if (sanitized.includes('!')) return 'Not Implemented';
+                const result = new Function('return ' + sanitized)();
+                if (!isFinite(result) || isNaN(result)) return 'Error';
+                return Number.isInteger(result) ? result : parseFloat(result.toFixed(8));
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function formatDisplayExpr(expr) {
+            if (!expr) return '0';
+            return expr.replace(/\*/g, '×').replace(/\//g, '÷').replace(/Math\./g, '');
+        }
+
+        function appendNumber(num) {
+            if (shouldResetDisplay) { currentExpression = ''; shouldResetDisplay = false; }
+            currentExpression += num;
+            updateCalcDisplay();
+        }
+
+        function appendOperator(op) {
+            if (shouldResetDisplay) shouldResetDisplay = false;
+            currentExpression += op;
+            updateCalcDisplay();
+        }
+
+        function appendFunc(func) {
+            if (shouldResetDisplay) { currentExpression = ''; shouldResetDisplay = false; }
+            currentExpression += func;
+            updateCalcDisplay();
+        }
+
+        function appendDecimal() {
+            if (shouldResetDisplay) { currentExpression = '0'; shouldResetDisplay = false; }
+            const parts = currentExpression.split(/[\+\-\*\/\%\(\)]/);
+            if (!parts[parts.length - 1].includes('.')) currentExpression += '.';
+            updateCalcDisplay();
+        }
+
+        function toggleSign() {
+            if (currentExpression !== '') {
+                if (currentExpression.startsWith('-')) currentExpression = currentExpression.substring(1);
+                else currentExpression = '-' + currentExpression;
+                updateCalcDisplay();
+            }
+        }
+
+        function clearAll() {
+            currentExpression = '';
+            shouldResetDisplay = false;
+            document.getElementById('expression').textContent = '0';
+            document.getElementById('display').textContent = '';
+        }
+
+        function deleteLast() {
+            if (shouldResetDisplay) { clearAll(); return; }
+            currentExpression = currentExpression.slice(0, -1);
+            if (currentExpression === '') clearAll();
+            else updateCalcDisplay();
+        }
+
+        function calculate() {
+            const result = safeEvaluate(currentExpression);
+            if (result !== '' && result !== 'Error') {
+                document.getElementById('expression').textContent = result;
+                document.getElementById('display').textContent = '';
+                currentExpression = result.toString();
+                shouldResetDisplay = true;
+            }
+        }
+
+        function updateCalcDisplay() {
+            document.getElementById('expression').textContent = formatDisplayExpr(currentExpression);
+            document.getElementById('display').textContent = safeEvaluate(currentExpression);
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (!document.getElementById('calcPage').classList.contains('active')) return;
+            if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+            else if (e.key === '+') appendOperator('+');
+            else if (e.key === '-') appendOperator('-');
+            else if (e.key === '*') appendOperator('*');
+            else if (e.key === '/') { e.preventDefault(); appendOperator('/'); }
+            else if (e.key === '(') appendOperator('(');
+            else if (e.key === ')') appendOperator(')');
+            else if (e.key === '.') appendDecimal();
+            else if (e.key === 'Enter' || e.key === '=') calculate();
+            else if (e.key === 'Backspace') deleteLast();
+            else if (e.key === 'Escape') clearAll();
+        });
+        
+        // ==================== CALENDAR ====================
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            document.getElementById('monthYear').textContent = monthNames[month] + ' ' + year;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            const holidaysThisMonth = allHolidays[month] || {};
+            const daysGrid = document.getElementById('daysGrid');
+            daysGrid.innerHTML = '';
+
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const div = document.createElement('div');
+                div.className = 'day-cell other-month';
+                div.textContent = daysInPrevMonth - i;
+                daysGrid.appendChild(div);
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const div = document.createElement('div');
+                div.className = 'day-cell';
+                div.textContent = d;
+                if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) div.classList.add('today');
+                if (holidaysThisMonth[d]) { div.classList.add('holiday'); div.title = holidaysThisMonth[d]; }
+                daysGrid.appendChild(div);
+            }
+
+            const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+            const remaining = totalCells - (firstDay + daysInMonth);
+            for (let d = 1; d <= remaining; d++) {
+                const div = document.createElement('div');
+                div.className = 'day-cell other-month';
+                div.textContent = d;
+                daysGrid.appendChild(div);
+            }
+
+            const holidaysList = document.getElementById('holidaysList');
+            let listHTML = `<div style="font-weight: 700; font-size: 18px; margin-bottom: 12px; color: var(--md-primary);">Spiritual Growth & Events in ${monthNames[month]}</div>`;
+            if (Object.keys(holidaysThisMonth).length === 0) {
+                listHTML += '<div style="color: var(--md-on-surface-variant); font-size: 15px; font-style: italic; font-weight: 500;">No specific events this month. Keep praying!</div>';
+            } else {
+                for (let [day, name] of Object.entries(holidaysThisMonth)) {
+                    const isSpiritual = name.includes('Spiritual');
+                    listHTML += `<div class="holiday-item" style="${isSpiritual ? 'border-left: 4px solid var(--md-primary); padding-left: 12px; background: rgba(37, 211, 102, 0.05); border-radius: 4px;' : ''}">
+                        <span class="holiday-date" style="font-weight: 600;">${monthNames[month]} ${day}</span>
+                        <span class="holiday-name" style="${isSpiritual ? 'color: var(--md-primary); font-weight: 700;' : 'color: var(--md-on-surface-variant); font-weight: 600;'}">${name}</span>
+                    </div>`;
+                }
+            }
+            holidaysList.innerHTML = listHTML;
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        // ==================== ALARM CLOCK ====================
+        function updateClock() {
+            const timeStr = getLocalTime();
+            const dateStr = getFormattedDate();
+            const timezoneStr = getTimezone();
+            const timeEl = document.getElementById('currentTime');
+            const dateEl = document.getElementById('currentDate');
+            const tzEl = document.getElementById('timezoneDisplay');
+            if (timeEl) timeEl.textContent = timeStr;
+            if (dateEl) dateEl.textContent = dateStr;
+            if (tzEl) tzEl.textContent = 'Timezone: ' + timezoneStr;
+
+            // In-page fallback firing only matters when there's no native bridge —
+            // the native bridge fires its own real Android alarm independently.
+            if (!nativeAlarmAvailable()) {
+                const now = new Date();
+                const currentComparable = convertToComparable(
+                    now.getHours() % 12 || 12,
+                    now.getMinutes(),
+                    now.getHours() >= 12 ? 'PM' : 'AM'
+                );
+                alarms.forEach(alarm => {
+                    if (alarm.active && alarm.comparable === currentComparable) {
+                        triggerAlarm(alarm);
+                    }
+                });
+            }
+        }
+
+        function playAlarmSound() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                
+                gain.gain.setValueAtTime(1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+                
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 1.5);
+            } catch (e) {
+                console.log("Audio generation failed:", e);
+            }
+        }
+
+        function triggerAlarm(alarm) {
+            const modal = document.getElementById('alarmModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            
+            if (alarm.type === 'Prayer') {
+                title.innerText = "Global Prayer Focus";
+                content.innerText = "Lord, we lift up the unreached nations to You. Let Your gospel shine in the darkest places today. Send forth laborers into Your harvest.";
+            } else if (alarm.type === 'Meditation') {
+                title.innerText = "Scripture Meditation";
+                content.innerText = "\"Go therefore and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit.\" - Matthew 28:19";
+            } else {
+                title.innerText = "Standard Alarm";
+                content.innerText = "It is now " + alarm.time;
+            }
+            
+            playAlarmSound();
+            if (alarmAudioInterval) clearInterval(alarmAudioInterval);
+            alarmAudioInterval = setInterval(playAlarmSound, 2000);
+            
+            modal.style.display = 'flex';
+            alarm.active = false;
+            saveState();
+            renderAlarms();
+        }
+
+        function dismissAlarm() {
+            if (alarmAudioInterval) {
+                clearInterval(alarmAudioInterval);
+                alarmAudioInterval = null;
+            }
+            document.getElementById('alarmModal').style.display = 'none';
+        }
+
+        function alarmMessageFor(type, time) {
+            if (type === 'Prayer') {
+                return "Lord, we lift up the unreached nations to You. Let Your gospel shine in the darkest places today. Send forth laborers into Your harvest.";
+            } else if (type === 'Meditation') {
+                return "Go therefore and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit. - Matthew 28:19";
+            }
+            return "It is now " + time;
+        }
+
+        function alarmTitleFor(type) {
+            if (type === 'Prayer') return "Global Prayer Focus";
+            if (type === 'Meditation') return "Scripture Meditation";
+            return "Standard Alarm";
+        }
+
+        function setAlarm() {
+            const hours = parseInt(document.getElementById('alarmHours').value);
+            const minutes = parseInt(document.getElementById('alarmMinutes').value);
+            const ampm = document.getElementById('alarmAmPm').value;
+            const type = document.getElementById('alarmType').value || 'Standard';
+
+            if (!validateAlarmTime(hours, minutes, ampm)) {
+                const modal = document.getElementById('alarmModal');
+                document.getElementById('modalTitle').innerText = "Invalid Time";
+                document.getElementById('modalContent').innerText = "Please enter valid 12-hour time. Hours must be 1-12 and minutes 0-59.";
+                modal.style.display = 'flex';
+                return;
+            }
+
+            const displayTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+            const comparable = convertToComparable(hours, minutes, ampm);
+            const [hh, mm] = comparable.split(':').map(Number);
+            const alarm = { id: Date.now(), time: displayTime, comparable: comparable, active: true, type: type };
+            alarms.push(alarm);
+            saveState();
+            renderAlarms();
+
+            // Schedule a REAL native Android alarm if the bridge is present.
+            if (nativeAlarmAvailable()) {
+                try {
+                    window.NativeAlarm.scheduleAlarm(
+                        alarm.id,
+                        hh,
+                        mm,
+                        alarmTitleFor(type),
+                        alarmMessageFor(type, displayTime)
+                    );
+                } catch (e) {
+                    console.log("Native alarm scheduling failed:", e);
+                }
+            }
+
+            document.getElementById('alarmHours').value = '';
+            document.getElementById('alarmMinutes').value = '';
+            document.getElementById('alarmAmPm').value = 'AM';
+            if (document.getElementById('alarmType')) document.getElementById('alarmType').value = 'Standard';
+        }
+
+        function toggleAlarm(id) {
+            const alarm = alarms.find(a => a.id === id);
+            if (alarm) {
+                alarm.active = !alarm.active;
+                if (nativeAlarmAvailable()) {
+                    if (alarm.active) {
+                        const [hh, mm] = alarm.comparable.split(':').map(Number);
+                        window.NativeAlarm.scheduleAlarm(alarm.id, hh, mm, alarmTitleFor(alarm.type), alarmMessageFor(alarm.type, alarm.time));
+                    } else {
+                        window.NativeAlarm.cancelAlarm(alarm.id);
+                    }
+                }
+            }
+            saveState();
+            renderAlarms();
+        }
+
+        function deleteAlarm(id) {
+            if (nativeAlarmAvailable()) {
+                try { window.NativeAlarm.cancelAlarm(id); } catch (e) {}
+            }
+            alarms = alarms.filter(a => a.id !== id);
+            saveState();
+            renderAlarms();
+        }
+
+        function renderAlarms() {
+            const alarmList = document.getElementById('alarmList');
+            if (alarms.length === 0) {
+                alarmList.innerHTML = '<div class="md-label">Active Alarms</div><div style="color: var(--md-on-surface-variant); font-size: 14px; padding: 16px; font-weight: 500;">No alarms set</div>';
+                return;
+            }
+            let html = '<div class="md-label">Active Alarms</div>';
+            alarms.forEach(alarm => {
+                html += `<div class="alarm-item">
+                    <div style="display: flex; flex-direction: column;">
+                        <span class="alarm-time">${alarm.time}</span>
+                        <span style="font-size: 14px; color: var(--md-primary); font-weight: 700; margin-top: -2px;">${alarm.type}</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button class="alarm-toggle ${alarm.active ? 'active' : ''}" onclick="toggleAlarm(${alarm.id})"></button>
+                        <button class="delete-alarm" onclick="deleteAlarm(${alarm.id})">x</button>
+                    </div>
+                </div>`;
+            });
+            alarmList.innerHTML = html;
+        }
+// ==================== PROGRESSIVE WEB APP (PWA) ====================
+        let deferredPrompt;
+
+        function initPWA() {
+            // 1. Dynamic Manifest generation
+            const manifest = {
+                name: "Multi-Utility Pro",
+                short_name: "UtilityPro",
+                start_url: window.location.pathname,
+                display: "standalone",
+                background_color: "#ffffff",
+                theme_color: "#1877F2",
+                icons: [{
+                    src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231877F2'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/></svg>",
+                    sizes: "192x192",
+                    type: "image/svg+xml",
+                    purpose: "any maskable"
+                }]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+            const manifestUrl = URL.createObjectURL(manifestBlob);
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestUrl;
+            document.head.appendChild(link);
+
+            // 2. Dynamic Service Worker generation
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'utility-pro-v1';
+                    self.addEventListener('install', event => {
+                        event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll([location.pathname])));
+                        self.skipWaiting();
+                    });
+                    self.addEventListener('activate', event => {
+                        event.waitUntil(clients.claim());
+                    });
+                    self.addEventListener('fetch', event => {
+                        event.respondWith(
+                            fetch(event.request).catch(() => caches.match(event.request).then(res => res || caches.match(location.pathname)))
+                        );
+                    });
+                `;
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(swBlob);
+                navigator.serviceWorker.register(swUrl).catch(err => console.log('SW registration failed:', err));
+            }
+
+            // 3. Intercept Install Prompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+            });
+        }
+
+        function installApp() {
+            closeSidebar();
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    deferredPrompt = null;
+                });
+            } else {
+                alert("Installation is not available. The app may already be installed, or your browser does not support it.");
+            }
+        }
+
+        function shareApp() {
+            closeSidebar();
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Multi-Utility Pro',
+                    text: 'Check out this Kingdom Productivity app for calculators, calendars, and focus alarms!',
+                    url: window.location.href,
+                }).catch(err => console.log('Error sharing:', err));
+            } else {
+                alert("Native sharing is not supported on this device. You can manually copy the URL in your browser bar.");
+            }
+        }
+
+        // ==================== INITIALIZATION ====================
+        if ('Notification' in window && !nativeAlarmAvailable()) Notification.requestPermission();
+        setInterval(updateClock, 1000);
+        renderCalendar();
+        renderAlarms();
+        updateClock();
+        initRouting();
+        initPWA();
+    </script>
+    <!-- WARNING: PROPRIETARY DV ARCHITECTURE. DO NOT CLONE. -->
+    <div id="dvUniversalUpdateModal" style="display:none; position:fixed; inset:0; z-index:9999999; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px; font-family:inherit;">
+      <div style="position:relative; width:100%; max-width:340px; text-align:left; padding:32px 24px; margin:0 auto; background-color:var(--md-surface); border-radius:24px; box-shadow:var(--md-elevation-3); overflow:hidden;">
+        <div style="font-size:26px; font-weight:800; color:var(--md-on-surface); margin-bottom:12px; line-height:1.2;">This app is out of date.</div>
+        <div style="font-size:18px; color:var(--md-on-surface-variant); margin-bottom:32px; line-height:1.5; font-weight:500;">Your current app version is unsupported and will be deprecated soon. To enjoy the latest features and content, please update to the latest version immediately.</div>
+        <button id="dvUniversalUpdateOkayBtn" style="width:100%; padding:16px; background-color:var(--md-primary); color:var(--md-on-primary); border:none; border-radius:50px; font-size:18px; font-weight:700; cursor:pointer; box-shadow:var(--md-elevation-2); transition:transform 0.2s;">Update Now</button>
+        <div style="position:absolute; bottom:8px; right:12px; font-size:10px; font-weight:700; color:var(--md-on-surface); opacity:0.15; user-select:none; pointer-events:none;">PROPRIETARY DV ENGINE</div>
+      </div>
+    </div>
+
+    <script>
+    (function() {
+      var DV_APP_VERSION = "1";
+      var DV_STORAGE_KEY = "UtilityPro";
+
+      console.log("%cProtected by DV Architecture", "color:#1877F2; font-weight:900; font-size:13px;");
+      var modal = document.getElementById('dvUniversalUpdateModal');
+      var btn = document.getElementById('dvUniversalUpdateOkayBtn');
+      var savedVersion = localStorage.getItem(DV_STORAGE_KEY);
+
+      if (savedVersion && savedVersion !== DV_APP_VERSION) {
+        modal.style.display = 'flex';
+      } else if (!savedVersion) {
+        localStorage.setItem(DV_STORAGE_KEY, DV_APP_VERSION);
+      }
+      
+      btn.addEventListener('click', function() {
+        localStorage.setItem(DV_STORAGE_KEY, DV_APP_VERSION);
+        modal.style.display = 'none';
+        
+        // Force purge the Service Worker cache before reloading
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) caches.delete(name);
+            });
+        }
+        window.location.reload(true);
+      });
+    })();
+    </script>
+</body>
+</html>
+
+
+
